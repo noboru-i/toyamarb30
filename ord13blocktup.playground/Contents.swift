@@ -38,51 +38,53 @@ class Stage {
         }
         
         // fall checks
+        mappingLeftFall()
+    }
+    
+    private func mappingLeftFall() {
+        let target = blockList[0]
+        for i in 0..<target.count {
+            if (target[i] == .undefined) {
+                
+            }
+        }
     }
     
     func fill() {
         for (x, blockCol) in blockList.enumerated() {
             for (y, block) in blockCol.enumerated() {
-                if (block == .block) {
-                    continue
+                if (block == .undefined) {
+                    blockList[x][y] = .water
                 }
-                
-                let left = safeGet(x: x - 1, y: y)
-                let right = safeGet(x: x + 1, y: y)
-                let bottom = safeGet(x: x, y: y + 1)
             }
         }
     }
     
-    private func safeGet(x: Int, y: Int) -> BlockState {
-        guard case blockList.indices = x else {
-            return .undefined
-        }
-        return .undefined
-    }
-    
     func output() {
-        for blockLine in blockList {
-            for block in blockLine {
-                print("\(block.toChar())", terminator: "")
+        for y in 0..<blockList[0].count {
+            for x in 0..<blockList.count {
+                print("\(blockList[x][y].toChar())", terminator: "")
             }
             print()
         }
     }
+
+    func countWater() -> Int {
+        return blockList.reduce(0) { (count, blockCol) -> Int in
+            return count + blockCol.reduce(0) { (count, block) -> Int in
+                return count + (block == .water ? 1 : 0)
+            }
+        }
+    }
+
     private func maxDepth(input: String) -> Int {
         return input.map{ Int(String($0))! }.max()!
     }
 }
 
-let rawInput = "213"
+let rawInput = "223"
 
 let stage = Stage()
-
-//// DUMMY
-//stage.blockList = [
-//    [BlockState.block, BlockState.water],
-//    [BlockState.water, BlockState.water],
-//]
 
 stage.mapping(input: rawInput)
 
@@ -93,3 +95,7 @@ stage.fill()
 
 print("filled")
 stage.output()
+
+let count = stage.countWater()
+print("water = \(count)")
+
