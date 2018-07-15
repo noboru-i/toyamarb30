@@ -1,6 +1,6 @@
 //: Playground - noun: a place where people can play
 
-enum Input {
+enum InputChar {
     // 1 - 9
     case customer(number: Int)
     // x
@@ -8,7 +8,7 @@ enum Input {
     // .
     case process
     
-    static func parse(input: Character) -> Input {
+    static func parse(input: Character) -> InputChar {
         switch input {
         case "x":
             return .stop
@@ -28,21 +28,27 @@ enum Customer {
 }
 
 class RegiState {
+    // 待っている人数
+    var waiterCount:Int {
+        get {
+            return waiterList.count
+        }
+    }
+
+    // 1つの"."あたりのレジ処理人数
+    private let power: Int
     // 各レジで待っている人
-    let power: Int
-    var waiterList: [Customer] = []
-    
+    private var waiterList: [Customer] = []
+
     init(power: Int) {
         self.power = power
     }
     
-    func add(input: Input) {
+    func add(input: InputChar) {
         switch input {
         case let .customer(number):
             // Customer.normalを必要件数追加
-            for _ in 1...number {
-                waiterList.append(Customer.normal)
-            }
+            (0..<number).forEach { _ in waiterList.append(Customer.normal) }
         default:
             // x
             waiterList.append(Customer.stop)
@@ -50,8 +56,8 @@ class RegiState {
     }
     
     func process() {
-        for _ in 0..<power {
-            if (waiterCount() == 0) {
+        (0..<power).forEach { _ in
+            if (waiterCount == 0) {
                 return
             }
             switch waiterList[0] {
@@ -62,69 +68,51 @@ class RegiState {
             }
         }
     }
-    
-    func waiterCount() -> Int {
-        return waiterList.count
-    }
 }
 
 class Store {
-    let regiList: [RegiState]
+    private let regiList: [RegiState]
     
-    init() {
-        regiList = [
-            RegiState(power: 2),
-            RegiState(power: 7),
-            RegiState(power: 3),
-            RegiState(power: 5),
-            RegiState(power: 2)
-        ]
+    init(powerList: [Int]) {
+        regiList = powerList.map { RegiState(power: $0) }
     }
     
-    func add(input: Input) {
+    func add(input: InputChar) {
         let targetRegiNumber = minWaiterRegi()
         regiList[targetRegiNumber].add(input: input)
     }
     
     func process() {
         // 各レジの処理
-        for regi in regiList {
-            regi.process()
-        }
+        regiList.forEach { $0.process() }
     }
     
     var description: String {
-        return regiList.map { String($0.waiterCount()) }.joined(separator: ",")
+        return regiList.map { String($0.waiterCount) }.joined(separator: ",")
     }
     
     // 待っている人が一番少ないレジ番号を返す
     private func minWaiterRegi() -> Int {
-        var regiNumber = 0
+        var regiNumber = -1
         var waiterCount = Int.max
         for (index, regi) in regiList.enumerated() {
-            if (waiterCount > regi.waiterCount()) {
+            if (waiterCount > regi.waiterCount) {
                 regiNumber = index
-                waiterCount = regi.waiterCount()
+                waiterCount = regi.waiterCount
             }
         }
         return regiNumber
     }
 }
 
-func parseInput(_ paramInput: String) -> [Input] {
-    var input:[Input] = []
-    for c in paramInput {
-        input.append(Input.parse(input: c))
-    }
-    return input
+func parseInput(_ paramInput: String) -> [InputChar] {
+    return paramInput.map { input in InputChar.parse(input: input) }
 }
-
-// MARK: Process start
 
 func test(_ param: String, _ expect: String) {
     let inputList = parseInput(param)
 
-    let store = Store()
+    let store = Store(powerList: [2, 7, 3, 5, 2])
 
     inputList.forEach {
         switch $0 {
@@ -135,7 +123,7 @@ func test(_ param: String, _ expect: String) {
         }
     }
 
-    print("\(param) : \(store.description)")
+    print("\"\(param)\", \"\(store.description)\"")
     assert(store.description == expect)
 }
 
